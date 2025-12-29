@@ -1,0 +1,40 @@
+.chat-wrapper {
+    position: absolute;
+    width: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.main-h1, .main-h2 {
+    justify-content: center;
+    text-align: center;
+    color: white;
+    user-select: none;
+}
+
+.main-h2 {
+    margin-top: -25px;
+}
+
+.chat {
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 20px;
+    padding: 10px;
+}
+
+.chat-input {
+    width: 100%;
+    resize: none;
+    background-color: #333;
+    border-radius: 10px;
+    color: white;
+    outline: none; 
+    border: none;
+    height: 20%;
+}
+
+.chat-input::placeholder {
+    color: white;
+}
