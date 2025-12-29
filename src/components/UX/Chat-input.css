@@ -37,3 +37,29 @@
 .chat-input::placeholder {
     color: white;
 }
+
+.options-btn, .send-btn {
+    border-radius: 50%;
+    border: none;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    background-color: #333;
+    color: white;
+    font-size: 20px;
+    transition: 0.3s ease;
+}
+
+.send-btn {
+    float: right;
+}
+
+.options-btn:hover, .send-btn:hover {
+    background-color: #555;
+}
+
+@media (max-width: 767px) {
+    .chat-wrapper  {
+      width: 90%;
+    }
+}
