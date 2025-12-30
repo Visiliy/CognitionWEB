@@ -1,15 +1,21 @@
-import './App.css'
-import ChatInput from './components/JS/Chat-input.jsx'
-import Heads from './components/JS/Heads.jsx'
+import { useState } from 'react';
+import ChatInput from './components/JS/Chat-input.jsx';
+import Heads from './components/JS/Heads.jsx';
+import EnterForm from './components/JS/EnterForm.jsx';
 
 function App() {
+  const [isEnterWindowOpen, setIsEnterWindowOpen] = useState(false);
+
+  const toggleEnterWindow = () => {
+    setIsEnterWindowOpen(prev => !prev);
+  };
 
   return (
     <>
-      <Heads />
-      <ChatInput />
+      <Heads openEnterWindow={toggleEnterWindow} />
+      {isEnterWindowOpen ? <ChatInput /> : <EnterForm />}
     </>
-  )
+  );
 }
 
-export default App
+export default App;

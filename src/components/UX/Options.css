@@ -8,7 +8,8 @@
     border-radius: 20px;
     background-color: #333;
     padding: 15px;
-    margin-bottom: -100px;
+    margin-bottom: -120px;
+    margin-top: 30px;
 
 }
 
@@ -17,11 +18,66 @@
     padding: 2px;
     justify-content: left;
     text-align: left;
-    cursor: pointer;
 }
 
 .li:hover {
-    background-color: white;
+    display: flex;
     color: black;
     border-radius: 5px;
+}
+
+.upload-file {
+    margin-top: 0;
+    color: white;
+    bottom: -5px;
+    padding: 2px;
+}
+
+.upload-file:hover {
+    padding: 2px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: black;
+    background-color: white;
+}
+
+.li2:hover {
+    background-color: white;
+    color: black;
+    cursor: pointer;
+}
+
+.li2 {
+    margin-top: 5px;
+}
+
+.to-right {
+    margin-left: 10px;
+    margin-top: 0;
+    padding: 0;
+    color: white;
+    cursor: pointer;
+}
+
+.add-file {
+    margin-bottom: -90px;
+    padding: 5px;
+    margin-top: 30px;
+    background-color: #333;
+    border-radius: 20px;
+    border: 2px solid #555;
+    margin-left: 10px;
+}
+
+.add-file-p {
+    padding: 2px;
+}
+
+.add-file-p:hover {
+    padding: 2px;
+    border-radius: 5px;
+    background-color: white;
+    color: black;
+    cursor: pointer;
+    user-select: none;
 }
