@@ -66,4 +66,9 @@
     .enter-wrapper  {
       width: 40%;
     }
+
+}@media (max-width: 1920px) {
+    .enter-wrapper  {
+      width: 15%;
+    }
 }

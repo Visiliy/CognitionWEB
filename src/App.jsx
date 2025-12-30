@@ -4,7 +4,7 @@ import Heads from './components/JS/Heads.jsx';
 import EnterForm from './components/JS/EnterForm.jsx';
 
 function App() {
-  const [isEnterWindowOpen, setIsEnterWindowOpen] = useState(false);
+  const [isEnterWindowOpen, setIsEnterWindowOpen] = useState(true);
 
   const toggleEnterWindow = () => {
     setIsEnterWindowOpen(prev => !prev);
