@@ -48,7 +48,7 @@
 }
 
 .li2 {
-    margin-top: 5px;
+    margin-top: -10px;
 }
 
 .to-right {
@@ -60,7 +60,7 @@
 }
 
 .add-file {
-    margin-bottom: -90px;
+    margin-bottom: -100px;
     padding: 5px;
     margin-top: 30px;
     background-color: #333;
@@ -70,7 +70,10 @@
 }
 
 .add-file-p {
+    justify-content: left;
+    text-align: left;
     padding: 2px;
+    margin: 3px;
 }
 
 .add-file-p:hover {

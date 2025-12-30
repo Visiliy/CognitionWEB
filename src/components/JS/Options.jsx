@@ -35,11 +35,12 @@ const Options = ({ onFilesSelected }) => {
         style={{ display: "none" }}
         onChange={handleFileChange}
         multiple
-        accept=".txt,.md,.csv,.json,.xml,.html,.css,.js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.h,.sh,.bat,.log"
+        accept=".txt,.md,.csv,.json,.xml,.html,.css,.js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.h,.sh,.bat,.log,.doc"
       />
     {
         openAddFiles && <div className="add-file">
         <p className="add-file-p">Добавить файлы к общему хранилищу</p>
+        <p className="add-file-p">Включить web-поиск</p>
     </div>
     }
     </div>
