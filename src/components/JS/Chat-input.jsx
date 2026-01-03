@@ -2,41 +2,137 @@ import { useState, useRef, useEffect } from "react";
 import "../UX/Chat-input.css";
 import Options from "./Options";
 
-const ChatInput = () => {
+const COOKIE_NAME = "user_session_id";
+const COOKIE_DURATION_AUTHED = 30 * 24 * 60 * 60;
+const COOKIE_DURATION_ANON = 24 * 60 * 60;
+
+const generateHashKey = () => {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+};
+
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
+
+const setCookie = (name, value, maxAge) => {
+  document.cookie = `${name}=${value}; max-age=${maxAge}; path=/; SameSite=Lax`;
+};
+
+const deleteCookie = (name) => {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+};
+
+const ChatInput = ({
+  onToggleAddFilesToStorage,
+  onToggleUseWebSearch,
+  onToggleUseMultiAgentMode,
+  addFilesToStorage = false,
+  useWebSearch = false,
+  useMultiAgentMode = false,
+}) => {
   const [openOptions, setOpenOptions] = useState(false);
+  const [loader, setLoader] = useState(false);
   const [text, setText] = useState('');
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [sessionId, setSessionId] = useState(null);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   const textareaRef = useRef(null);
 
-  const handleFilesSelected = (newFiles) => {
-    setSelectedFiles(prev => [...prev, ...newFiles]);
-  };
-
-  const deleteFile = (index) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-  };  
-
-  const handleSubmit = async () => {
+  const deleteAccount = async () => {
+    if (!sessionId) return;
+    
     try {
-      const response = await fetch('http://127.0.0.1:5070/main_router/', {
+      const response = await fetch('http://127.0.0.1:5070/main_router/delete_account', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: text }),
+        body: JSON.stringify({ session_id: sessionId }),
       });
-      const result = await response.json();
-      console.log('Ответ от Flask:', result);
-      setText("");
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "auto";
+      
+      if (response.ok) {
+        deleteCookie(COOKIE_NAME);
+        window.location.reload();
       }
     } catch (error) {
-      console.error('Ошибка при отправке:', error);
+      console.error('Ошибка при удалении аккаунта:', error);
     }
   };
 
+  useEffect(() => {
+    const storedId = getCookie(COOKIE_NAME);
+    if (storedId) {
+      setSessionId(storedId);
+      setIsRegistered(true);
+      setCookie(COOKIE_NAME, storedId, COOKIE_DURATION_AUTHED);
+    } else {
+      const newId = generateHashKey();
+      setSessionId(newId);
+      setIsRegistered(false);
+      setCookie(COOKIE_NAME, newId, COOKIE_DURATION_ANON);
+    }
+  }, []);
+
+  const handleFilesSelected = (newFiles) => {
+    setSelectedFiles(prev => {
+      const total = [...prev, ...Array.from(newFiles)];
+      return total.length > 5 ? total.slice(0, 5) : total;
+    });
+  };
+
+  const deleteFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    if (!sessionId) return;
+
+    setLoader(true);
+    const formData = new FormData();
+    formData.append("text", text.trim());
+    formData.append("add_files_to_storage", String(Boolean(addFilesToStorage)));
+    formData.append("use_web_search", String(Boolean(useWebSearch)));
+    formData.append("use_multi_agent_mode", String(Boolean(useMultiAgentMode)));
+    formData.append("session_id", sessionId);
+    formData.append("is_registered", String(isRegistered));
+
+    selectedFiles.forEach(file => {
+      formData.append("files", file);
+    });
+
+    try {
+      const response = await fetch('http://127.0.0.1:5070/main_router/', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP ${response.status}`);
+      }
+
+      setText("");
+      setSelectedFiles([]);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
+
+      if (!isRegistered) {
+        setIsRegistered(true);
+        setCookie(COOKIE_NAME, sessionId, COOKIE_DURATION_AUTHED);
+      }
+    } catch (error) {
+      console.error('Ошибка при отправке:', error);
+    } finally {
+      setLoader(false);
+    }
+  };
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -60,8 +156,14 @@ const ChatInput = () => {
   return (
     <>
       <div className="chat-wrapper">
-        <h1 className="main-h1">Cognition</h1>
-        <h2 className="main-h2">Точность и информативность превыше всего</h2>
+        {!loader ? (
+          <>
+            <h1 className="main-h1">Cognition</h1>
+            <h2 className="main-h2">Точность и информативность превыше всего</h2>
+          </>
+        ) : (
+          <div className="loader"></div>
+        )}
         <div className="chat">
           <textarea
             placeholder="Задайте любой вопрос..."
@@ -71,17 +173,24 @@ const ChatInput = () => {
             value={text}
           />
           <button className="options-btn" onClick={openOptionsFunction}>
-            {
-                openOptions ? <>x</> : <>+</>
-            }
+            {openOptions ? "x" : "+"}
           </button>
           <button onClick={handleSubmit} className="send-btn">↑</button>
           {selectedFiles.map((file, index) => (
             <div key={index} className="file-preview-item" onClick={() => deleteFile(index)}>
-                {file.name}
+              {file.name}
             </div>
           ))}
-          {openOptions && <Options onFilesSelected={handleFilesSelected} />}
+          {openOptions && (
+            <Options
+              onFilesSelected={handleFilesSelected}
+              onToggleAddFilesToStorage={onToggleAddFilesToStorage}
+              onToggleUseWebSearch={onToggleUseWebSearch}
+              onToggleUseMultiAgentMode={onToggleUseMultiAgentMode}
+              onDeleteAccount={deleteAccount}
+              isRegistered={isRegistered}
+            />
+          )}
         </div>
       </div>
     </>

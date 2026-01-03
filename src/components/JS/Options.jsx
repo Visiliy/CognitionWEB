@@ -1,7 +1,12 @@
 import { useRef, useState } from "react";
 import "../UX/Options.css";
 
-const Options = ({ onFilesSelected }) => {
+const Options = ({
+  onFilesSelected,
+  onToggleAddFilesToStorage,
+  onToggleUseWebSearch,
+  onToggleUseMultiAgentMode,
+}) => {
   const fileInputRef = useRef(null);
   const [openAddFiles, setOpenFiles] = useState(false);
 
@@ -9,9 +14,9 @@ const Options = ({ onFilesSelected }) => {
     fileInputRef.current?.click();
   };
 
-  const addFiles = () => {
+  const toggleAddFiles = () => {
     setOpenFiles(!openAddFiles);
-  }
+  };
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
@@ -25,9 +30,9 @@ const Options = ({ onFilesSelected }) => {
       <ul className="ul-wrapper">
         <li className="li">
           <p className="upload-file" onClick={openFilePicker}>Добавить файл</p>
-          <p className="to-right" onClick={addFiles}>→</p>
+          <p className="to-right" onClick={toggleAddFiles}>→</p>
         </li>
-        <li className="li li2">Мультиагентный режим</li>
+        <li className="li li2" onClick={onToggleUseMultiAgentMode}>Мультиагентный режим</li>
       </ul>
       <input
         type="file"
@@ -37,12 +42,16 @@ const Options = ({ onFilesSelected }) => {
         multiple
         accept=".txt,.md,.csv,.json,.xml,.html,.css,.js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.h,.sh,.bat,.log,.doc"
       />
-    {
-        openAddFiles && <div className="add-file">
-        <p className="add-file-p">Добавить файлы к общему хранилищу</p>
-        <p className="add-file-p">Включить web-поиск</p>
-    </div>
-    }
+      {openAddFiles && (
+        <div className="add-file">
+          <p className="add-file-p" onClick={onToggleAddFilesToStorage}>
+            {onToggleAddFilesToStorage ? "Добавить файлы к общему хранилищу" : "Добавить файлы к общему хранилищу"}
+          </p>
+          <p className="add-file-p" onClick={onToggleUseWebSearch}>
+            {onToggleUseWebSearch ? "Включить web-поиск" : "Включить web-поиск"}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

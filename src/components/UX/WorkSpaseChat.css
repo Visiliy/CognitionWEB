@@ -1,0 +1,29 @@
+.work-space-chat {
+    position: absolute;
+    left: 50%;
+    right: 20px;
+    bottom: 20px;
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 20px;
+    background-color: #333;
+}
+
+.work-space-input {
+    width: 100%;
+    border-radius: 10px;
+    max-height: 200px;
+    border: none;
+    outline: none;
+    resize: none;
+    background-color: #333;
+    color: white;
+}
+
+.work-space-input::placeholder {
+    color: white;
+}
+
+.work-space-input::-webkit-scrollbar {
+    display: none;
+}
