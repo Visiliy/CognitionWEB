@@ -6,6 +6,8 @@ const Options = ({
   onToggleAddFilesToStorage,
   onToggleUseWebSearch,
   onToggleUseMultiAgentMode,
+  addFilesToStorage,
+  useWebSearch,
 }) => {
   const fileInputRef = useRef(null);
   const [openAddFiles, setOpenFiles] = useState(false);
@@ -23,6 +25,7 @@ const Options = ({
     if (files.length > 0 && onFilesSelected) {
       onFilesSelected(files);
     }
+    event.target.value = '';
   };
 
   return (
@@ -44,11 +47,27 @@ const Options = ({
       />
       {openAddFiles && (
         <div className="add-file">
-          <p className="add-file-p" onClick={onToggleAddFilesToStorage}>
-            {onToggleAddFilesToStorage ? "Добавить файлы к общему хранилищу" : "Добавить файлы к общему хранилищу"}
+          <p
+            className="add-file-p"
+            onClick={() => {
+              onToggleAddFilesToStorage();
+              setOpenFiles(false);
+            }}
+          >
+            {addFilesToStorage
+              ? "Файлы добавляются в общее хранилище"
+              : "Добавлять файлы в общее хранилище"}
           </p>
-          <p className="add-file-p" onClick={onToggleUseWebSearch}>
-            {onToggleUseWebSearch ? "Включить web-поиск" : "Включить web-поиск"}
+          <p
+            className="add-file-p"
+            onClick={() => {
+              onToggleUseWebSearch();
+              setOpenFiles(false);
+            }}
+          >
+            {useWebSearch
+              ? "Web-поиск включён"
+              : "Включить web-поиск"}
           </p>
         </div>
       )}

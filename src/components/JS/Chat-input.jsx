@@ -46,16 +46,12 @@ const ChatInput = ({
 
   const deleteAccount = async () => {
     if (!sessionId) return;
-    
     try {
       const response = await fetch('http://127.0.0.1:5070/main_router/delete_account', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: sessionId }),
       });
-      
       if (response.ok) {
         deleteCookie(COOKIE_NAME);
         window.location.reload();
@@ -91,16 +87,16 @@ const ChatInput = ({
   };
 
   const handleSubmit = async () => {
-    if (!sessionId) return;
+    if (!sessionId || (!text.trim() && selectedFiles.length === 0)) return;
 
     setLoader(true);
     const formData = new FormData();
     formData.append("text", text.trim());
-    formData.append("add_files_to_storage", String(Boolean(addFilesToStorage)));
-    formData.append("use_web_search", String(Boolean(useWebSearch)));
-    formData.append("use_multi_agent_mode", String(Boolean(useMultiAgentMode)));
+    formData.append("add_files_to_storage", addFilesToStorage ? "true" : "false");
+    formData.append("use_web_search", useWebSearch ? "true" : "false");
+    formData.append("use_multi_agent_mode", useMultiAgentMode ? "true" : "false");
     formData.append("session_id", sessionId);
-    formData.append("is_registered", String(isRegistered));
+    formData.append("is_registered", isRegistered ? "true" : "false");
 
     selectedFiles.forEach(file => {
       formData.append("files", file);
@@ -123,7 +119,7 @@ const ChatInput = ({
         textareaRef.current.style.height = "auto";
       }
 
-      if (!isRegistered) {
+      if (!isRegistered && response.status === 200) {
         setIsRegistered(true);
         setCookie(COOKIE_NAME, sessionId, COOKIE_DURATION_AUTHED);
       }
@@ -140,13 +136,14 @@ const ChatInput = ({
 
     const adjustHeight = () => {
       textarea.style.height = "auto";
-      textarea.style.height = textarea.scrollHeight + "px";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
     };
 
-    textarea.addEventListener("input", adjustHeight);
-    return () => {
-      textarea.removeEventListener("input", adjustHeight);
-    };
+    const observer = new ResizeObserver(adjustHeight);
+    observer.observe(textarea);
+    adjustHeight();
+
+    return () => observer.disconnect();
   }, []);
 
   const openOptionsFunction = () => {
@@ -171,11 +168,17 @@ const ChatInput = ({
             onChange={(e) => setText(e.target.value)}
             ref={textareaRef}
             value={text}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
           />
           <button className="options-btn" onClick={openOptionsFunction}>
             {openOptions ? "x" : "+"}
           </button>
-          <button onClick={handleSubmit} className="send-btn">↑</button>
+          <button onClick={handleSubmit} className="send-btn" disabled={loader || (!text.trim() && selectedFiles.length === 0)}>↑</button>
           {selectedFiles.map((file, index) => (
             <div key={index} className="file-preview-item" onClick={() => deleteFile(index)}>
               {file.name}
@@ -189,6 +192,8 @@ const ChatInput = ({
               onToggleUseMultiAgentMode={onToggleUseMultiAgentMode}
               onDeleteAccount={deleteAccount}
               isRegistered={isRegistered}
+              addFilesToStorage={addFilesToStorage}
+              useWebSearch={useWebSearch}
             />
           )}
         </div>

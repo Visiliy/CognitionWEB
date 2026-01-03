@@ -16,6 +16,7 @@ const deleteCookie = (name) => {
 };
 
 const FilesSpace = () => {
+  //deleteCookie(COOKIE_NAME);
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -32,33 +33,21 @@ const FilesSpace = () => {
     }
 
     setSessionId(storedId);
-
-    const checkRegistration = async () => {
-      try {
-        const res = await fetch(`http://127.0.0.1:5070/main_router/check_session?session_id=${storedId}`);
-        const data = await res.json();
-        if (!data.exists || !data.is_registered) {
-          setIsRegistered(false);
-          navigate("/");
-          return;
-        }
-        setIsRegistered(true);
-      } catch (err) {
-        console.error("Failed to check session", err);
-        navigate("/");
-      }
-    };
-
-    checkRegistration();
+    setIsRegistered(true);
   }, [navigate]);
 
   const fetchFiles = async (type) => {
+    if (!sessionId) return [];
+
     try {
-      const endpoint = type === "private" ? "list_private_files" : "list_shared_storage_files";
+      const endpoint = type === "private" ? "upload_private_files" : "upload_storage_files";
       const res = await fetch(`http://127.0.0.1:5070/main_router/${endpoint}?session_id=${sessionId}`);
       if (!res.ok) throw new Error(`Failed to load ${type} files`);
       const data = await res.json();
-      return data.files || [];
+      if (data[0]?.FilesNames) {
+        return data[0].FilesNames.map(name => ({ name, size: 0 }));
+      }
+      return [];
     } catch (err) {
       console.warn(`Error loading ${type} files:`, err.message);
       return [];
@@ -67,7 +56,7 @@ const FilesSpace = () => {
 
   const refreshFiles = async () => {
     if (!sessionId || !isRegistered) return;
-    
+
     setLoading(true);
     setError(null);
 
@@ -88,21 +77,26 @@ const FilesSpace = () => {
   };
 
   const deleteSession = async () => {
+    if (!sessionId) return;
+
     try {
-      const response = await fetch('http://127.0.0.1:5070/main_router/delete_session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ session_id: sessionId }),
+      const formData = new FormData();
+      formData.append("session_id", sessionId);
+
+      const response = await fetch("http://127.0.0.1:5070/main_router/delete_session", {
+        method: "POST",
+        body: formData,
       });
-      
+
       if (response.ok) {
         deleteCookie(COOKIE_NAME);
         navigate("/");
+      } else {
+        throw new Error("Failed to delete session");
       }
     } catch (error) {
-      console.error('Ошибка при удалении сессии:', error);
+      console.error("Ошибка при удалении сессии:", error);
+      setError("Ошибка при удалении сессии");
     }
   };
 
@@ -111,6 +105,8 @@ const FilesSpace = () => {
       refreshFiles();
     }
   }, [sessionId, isRegistered]);
+
+  if (!isRegistered) return null;
 
   if (loading) {
     return (
@@ -137,7 +133,7 @@ const FilesSpace = () => {
   if (error) {
     return (
       <div className="files-space-wrapper">
-        <p className="error">Ошибка загрузки файлов</p>
+        <p className="error">{error}</p>
         <button onClick={refreshFiles} className="retry-btn">Повторить</button>
       </div>
     );
@@ -152,7 +148,7 @@ const FilesSpace = () => {
         <button onClick={refreshFiles} className="refresh-btn">Обновить</button>
         <button onClick={deleteSession} className="delete-session-btn">Удалить сессию</button>
       </div>
-      
+
       {!hasFiles ? (
         <p className="empty-message">Пусто</p>
       ) : (
@@ -164,7 +160,6 @@ const FilesSpace = () => {
                 {sharedStorageFiles.map((file, idx) => (
                   <li key={`shared-${idx}`} className="file-item">
                     <span className="file-name">{file.name}</span>
-                    <span className="file-size">({Math.round(file.size / 1024)} KB)</span>
                   </li>
                 ))}
               </ul>
@@ -178,7 +173,6 @@ const FilesSpace = () => {
                 {privateFiles.map((file, idx) => (
                   <li key={`private-${idx}`} className="file-item">
                     <span className="file-name">{file.name}</span>
-                    <span className="file-size">({Math.round(file.size / 1024)} KB)</span>
                   </li>
                 ))}
               </ul>
