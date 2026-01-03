@@ -50,6 +50,9 @@ function App() {
           onToggleAddFilesToStorage={toggleAddFilesToStorage}
           onToggleUseWebSearch={toggleUseWebSearch}
           onToggleUseMultiAgentMode={toggleUseMultiAgentMode}
+          addFilesToStorage={addFilesToStorage}
+          useWebSearch={useWebSearch}
+          useMultiAgentMode={useMultiAgentMode}
         />
       ) : <EnterForm />}
       {isNotificationOpen && <Notification text={notificationText} />}
