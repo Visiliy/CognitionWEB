@@ -1,29 +1,45 @@
-.work-space-chat {
-    position: absolute;
-    left: 50%;
-    right: 20px;
-    bottom: 20px;
+.work-space-chat-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: calc(100% - 40px);
+  }
+  
+  .work-space-chat {
     padding: 10px;
     border: 1px solid #555;
     border-radius: 20px;
     background-color: #333;
-}
-
-.work-space-input {
+    width: 50%;
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .work-space-input {
     width: 100%;
     border-radius: 10px;
     max-height: 200px;
+    min-height: 24px;
     border: none;
     outline: none;
     resize: none;
     background-color: #333;
     color: white;
-}
-
-.work-space-input::placeholder {
+    padding: 8px 12px;
+    box-sizing: border-box;
+  }
+  
+  .work-space-input::placeholder {
     color: white;
-}
-
-.work-space-input::-webkit-scrollbar {
+  }
+  
+  .work-space-input::-webkit-scrollbar {
     display: none;
+  }
+
+@media (max-width: 767px) {
+    .work-space-chat  {
+      width: calc(100% - 40px);
+    }
 }

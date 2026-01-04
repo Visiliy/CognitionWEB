@@ -1,26 +1,25 @@
 .files-space-wrapper {
-    position: absolute;
     color: white;
-    margin-top: 50px;
     padding: 10px;
     border-radius: 20px;
-    border: 2px solid #333;
-    height: 78%;
-    bottom: 20px;
+    height: calc(100vh - 120px);
     user-select: none;
     margin-left: 10px;
-    max-width: 350px;
-}
-
-.files-section {
+    max-width: 50%;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  
+  .files-section {
     background-color: #333;
     padding: 5px 20px;
     border-radius: 20px;
     border: 2px solid #555;
     overflow: auto;
-}
-
-.file-item {
+    margin-top: 20px;
+  }
+  
+  .file-item {
     display: block;
     width: fit-content;
     margin-top: 5px;
@@ -28,6 +27,55 @@
     background-color: #555;
     border-radius: 10px;
     cursor: pointer;
-    margin-left: -40px;
+    margin-left: -50px;
     font-size: 18px;
-}
+  }
+  
+  .main-work-space-text {
+    text-align: center;
+    width: 100%;
+    margin-top: 3px;
+  }
+  
+  .refresh-btn,
+  .delete-session-btn {
+    padding: 5px;
+    border: none;
+    margin-top: -10px;
+    border-radius: 10px;
+    color: black;
+    cursor: pointer;
+    background-color: white;
+  }
+  
+  .delete-session-btn {
+    margin-left: 7px;
+  }
+  
+  .files-section::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  .files-section::-webkit-scrollbar-track {
+    border: none;
+  }
+  
+  .files-section::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 10px;
+    border: 2px solid #333;
+  }
+  
+  .files-space-wrapper::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  .files-space-wrapper::-webkit-scrollbar-track {
+    border: none;
+  }
+  
+  .files-space-wrapper::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 10px;
+    border: 2px solid #333;
+  }

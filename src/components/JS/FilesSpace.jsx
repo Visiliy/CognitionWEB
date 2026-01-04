@@ -17,6 +17,7 @@ const deleteCookie = (name) => {
 
 const FilesSpace = () => {
   //deleteCookie(COOKIE_NAME);
+
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -42,11 +43,13 @@ const FilesSpace = () => {
     try {
       const endpoint = type === "private" ? "upload_private_files" : "upload_storage_files";
       const res = await fetch(`http://127.0.0.1:5070/main_router/${endpoint}?session_id=${sessionId}`);
-      if (!res.ok) throw new Error(`Failed to load ${type} files`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      if (data[0]?.FilesNames) {
-        return data[0].FilesNames.map(name => ({ name, size: 0 }));
+
+      if (Array.isArray(data) && data.length > 0 && data[0].FilesNames && Array.isArray(data[0].FilesNames)) {
+        return data[0].FilesNames.map(name => ({ name }));
       }
+
       return [];
     } catch (err) {
       console.warn(`Error loading ${type} files:`, err.message);
@@ -155,7 +158,7 @@ const FilesSpace = () => {
         <>
           {sharedStorageFiles.length > 0 && (
             <div className="files-section">
-              <h2>Общее хранилище</h2>
+              <h2 className="main-work-space-text">Общее хранилище</h2>
               <ul className="files-list">
                 {sharedStorageFiles.map((file, idx) => (
                   <li key={`shared-${idx}`} className="file-item">
@@ -168,7 +171,7 @@ const FilesSpace = () => {
 
           {privateFiles.length > 0 && (
             <div className="files-section">
-              <h2>Временное хранилище</h2>
+              <h2 className="main-work-space-text">Временное хранилище</h2>
               <ul className="files-list">
                 {privateFiles.map((file, idx) => (
                   <li key={`private-${idx}`} className="file-item">

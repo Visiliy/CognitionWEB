@@ -1,0 +1,31 @@
+.work-spase-options {
+    color: white;
+    width: fit-content;
+    padding: 10px;
+    border: 1px solid #555;
+    background-color: #333;
+    border-radius: 20px;
+    margin-bottom: 5px;
+    margin-left: 50%;
+    transform: translateX(-95%);
+}
+
+.work-spase-options ul {
+    list-style: none;
+    padding: 0px;
+    margin: 0px;
+  }
+
+.work-spase-options-li {
+    width: fit-content;
+    padding: 2px;
+    margin-left: 5px;
+}
+
+.work-spase-options-li:hover {
+    cursor: pointer;
+    display: flex;
+    border-radius: 5px;
+    background-color: white;
+    color: black;
+}

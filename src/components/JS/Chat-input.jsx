@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import "../UX/Chat-input.css";
+import { useNavigate } from "react-router-dom";
 import Options from "./Options";
 
 const COOKIE_NAME = "user_session_id";
@@ -35,6 +36,7 @@ const ChatInput = ({
   useWebSearch = false,
   useMultiAgentMode = false,
 }) => {
+  const navigate = useNavigate();
   const [openOptions, setOpenOptions] = useState(false);
   const [loader, setLoader] = useState(false);
   const [text, setText] = useState('');
@@ -78,7 +80,7 @@ const ChatInput = ({
   const handleFilesSelected = (newFiles) => {
     setSelectedFiles(prev => {
       const total = [...prev, ...Array.from(newFiles)];
-      return total.length > 5 ? total.slice(0, 5) : total;
+      return total;
     });
   };
 
@@ -127,6 +129,7 @@ const ChatInput = ({
       console.error('Ошибка при отправке:', error);
     } finally {
       setLoader(false);
+      navigate("/working_area");
     }
   };
 
