@@ -28,6 +28,15 @@ const deleteCookie = (name) => {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 };
 
+const clearAllCookies = () => {
+  const cookies = ["user_session_id", "is_registered", "access_token", "refresh_token", "username"];
+  cookies.forEach(cookie => {
+    deleteCookie(cookie);
+    document.cookie = `${cookie}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    document.cookie = `${cookie}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`;
+  });
+};
+
 const WorkSpaseChat = () => {
   const navigate = useNavigate();
   const [openOptions, setOpenOptions] = useState(false);
@@ -103,19 +112,26 @@ const WorkSpaseChat = () => {
   };
 
   const deleteAccount = async () => {
-    if (!sessionId) return;
+    console.log('deleteAccount вызвана, sessionId:', sessionId);
+    
     try {
-      const response = await fetch('http://127.0.0.1:5070/main_router/delete_account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId }),
-      });
-      if (response.ok) {
-        deleteCookie(COOKIE_NAME);
-        window.location.reload();
+      if (sessionId) {
+        const response = await fetch('http://127.0.0.1:5070/main_router/delete_account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sessionId }),
+        });
+        
+        if (!response.ok) {
+          console.warn('Запрос на удаление аккаунта не успешен:', response.status);
+        }
       }
     } catch (error) {
       console.error('Ошибка при удалении аккаунта:', error);
+    } finally {
+      // Всегда удаляем куки и делаем редирект, даже если запрос не успешен
+      clearAllCookies();
+      navigate("/");
     }
   };
 

@@ -15,6 +15,38 @@ const deleteCookie = (name) => {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 };
 
+const clearAllCookies = () => {
+  const cookies = ["user_session_id", "is_registered", "access_token", "refresh_token", "username"];
+  cookies.forEach(cookie => {
+    deleteCookie(cookie);
+    // Также удаляем с разными путями на всякий случай
+    document.cookie = `${cookie}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    document.cookie = `${cookie}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`;
+  });
+};
+
+const truncateFileName = (fileName, maxLength = 40) => {
+  if (fileName.length <= maxLength) {
+    return fileName;
+  }
+
+  const lastDotIndex = fileName.lastIndexOf('.');
+  if (lastDotIndex === -1 || lastDotIndex === 0) {
+    // Нет расширения или точка в начале
+    return fileName.substring(0, maxLength - 3) + '...';
+  }
+
+  const extension = fileName.substring(lastDotIndex);
+  const nameWithoutExt = fileName.substring(0, lastDotIndex);
+  const availableLength = maxLength - 3 - extension.length;
+
+  if (availableLength <= 0) {
+    return '...' + extension;
+  }
+
+  return nameWithoutExt.substring(0, availableLength) + '...' + extension;
+};
+
 const FilesSpace = () => {
   //deleteCookie(COOKIE_NAME);
 
@@ -92,7 +124,7 @@ const FilesSpace = () => {
       });
 
       if (response.ok) {
-        deleteCookie(COOKIE_NAME);
+        clearAllCookies();
         navigate("/");
       } else {
         throw new Error("Failed to delete session");
@@ -162,7 +194,7 @@ const FilesSpace = () => {
               <ul className="files-list">
                 {sharedStorageFiles.map((file, idx) => (
                   <li key={`shared-${idx}`} className="file-item">
-                    <span className="file-name">{file.name}</span>
+                    <span className="file-name">{truncateFileName(file.name)}</span>
                   </li>
                 ))}
               </ul>
@@ -175,7 +207,7 @@ const FilesSpace = () => {
               <ul className="files-list">
                 {privateFiles.map((file, idx) => (
                   <li key={`private-${idx}`} className="file-item">
-                    <span className="file-name">{file.name}</span>
+                    <span className="file-name">{truncateFileName(file.name)}</span>
                   </li>
                 ))}
               </ul>

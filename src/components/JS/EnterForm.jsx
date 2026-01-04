@@ -3,13 +3,41 @@ import "../UX/EnterForm.css";
 
 const COOKIE_NAME = "user_session_id";
 const COOKIE_REGISTERED = "is_registered";
+const COOKIE_ACCESS_TOKEN = "access_token";
+const COOKIE_REFRESH_TOKEN = "refresh_token";
+const COOKIE_USERNAME = "username";
 const COOKIE_DURATION_AUTHED = 30 * 24 * 60 * 60;
 
 const setCookie = (name, value, maxAge) => {
   document.cookie = `${name}=${value}; max-age=${maxAge}; path=/; SameSite=Lax`;
 };
 
-const EnterForm = () => {
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
+
+const deleteCookie = (name) => {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+};
+
+const clearAllAuthCookies = () => {
+  deleteCookie(COOKIE_NAME);
+  deleteCookie(COOKIE_REGISTERED);
+  deleteCookie(COOKIE_ACCESS_TOKEN);
+  deleteCookie(COOKIE_REFRESH_TOKEN);
+  deleteCookie(COOKIE_USERNAME);
+};
+
+const generateHashKey = () => {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+};
+
+const EnterForm = ({ onLoginSuccess }) => {
     const [openRegForm, setOpenRegForm] = useState(true);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -22,7 +50,7 @@ const EnterForm = () => {
         setError("");
 
         if (!username.trim() || !password.trim()) {
-            setError("Username and password are required");
+            setError("Имя пользователя и пароль обязательны");
             return;
         }
 
@@ -38,23 +66,42 @@ const EnterForm = () => {
 
             if (!res.ok) {
                 if (data.error === "user_not_found") {
-                    setError("User not found");
+                    setError("Пользователь не найден");
                 } else if (data.error === "incorrect_password") {
-                    setError("Incorrect password");
+                    setError("Неверный пароль");
                 } else {
-                    setError(data.error || "Login failed");
+                    setError(data.error || "Ошибка входа");
                 }
                 return;
             }
 
-            if (data.session_id) {
-                setCookie(COOKIE_NAME, data.session_id, COOKIE_DURATION_AUTHED);
-                setCookie(COOKIE_REGISTERED, data.is_registered === true ? "true" : "false", COOKIE_DURATION_AUTHED);
-            }
+            clearAllAuthCookies();
 
-            window.location.href = "/";
+            if (data.access_token && data.refresh_token && data.session_id && data.user) {
+                setCookie(COOKIE_ACCESS_TOKEN, data.access_token, COOKIE_DURATION_AUTHED);
+                setCookie(COOKIE_REFRESH_TOKEN, data.refresh_token, COOKIE_DURATION_AUTHED);
+                setCookie(COOKIE_NAME, data.session_id, COOKIE_DURATION_AUTHED);
+                setCookie(COOKIE_REGISTERED, "true", COOKIE_DURATION_AUTHED);
+                setCookie(COOKIE_USERNAME, data.user.username, COOKIE_DURATION_AUTHED);
+                
+                // Очищаем форму
+                setUsername("");
+                setPassword("");
+                setError("");
+                
+                // Вызываем callback вместо перезагрузки страницы
+                if (onLoginSuccess) {
+                    console.log('Вызываем onLoginSuccess с username:', data.user.username);
+                    onLoginSuccess(data.user.username);
+                } else {
+                    console.log('onLoginSuccess не передан, перезагружаем страницу');
+                    window.location.href = "/";
+                }
+            } else {
+                setError("Ошибка: неполные данные от сервера");
+            }
         } catch (err) {
-            setError("Network error");
+            setError("Ошибка сети");
         } finally {
             setLoading(false);
         }
@@ -65,8 +112,13 @@ const EnterForm = () => {
         setError("");
 
         if (!username.trim() || !password.trim() || !email.trim()) {
-            setError("All fields are required");
+            setError("Все поля обязательны для заполнения");
             return;
+        }
+
+        let session_id = getCookie(COOKIE_NAME);
+        if (!session_id) {
+            session_id = generateHashKey();
         }
 
         setLoading(true);
@@ -74,31 +126,51 @@ const EnterForm = () => {
             const res = await fetch("http://127.0.0.1:5070/register/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, email, password })
+                body: JSON.stringify({ session_id, username, email, password })
             });
 
             const data = await res.json();
 
             if (!res.ok) {
                 if (data.error === "username_already_taken") {
-                    setError("Username already taken");
+                    setError("Имя пользователя уже занято");
                 } else if (data.error === "email_already_taken") {
-                    setError("Email already taken");
+                    setError("Email уже занят");
                 } else {
-                    setError(data.error || "Registration failed");
+                    setError(data.error || "Ошибка регистрации");
                 }
                 return;
             }
 
-            if (data.session_id) {
-                setCookie(COOKIE_NAME, data.session_id, COOKIE_DURATION_AUTHED);
-                setCookie(COOKIE_REGISTERED, data.is_registered === true ? "true" : "false", COOKIE_DURATION_AUTHED);
+            if (data.status === "already_registered") {
+                setError("Пользователь уже зарегистрирован");
+                return;
             }
 
-            alert("Registration successful!");
-            setOpenRegForm(true);
+            if (data.status === "registered" && data.session_id) {
+                clearAllAuthCookies();
+                setCookie(COOKIE_NAME, data.session_id, COOKIE_DURATION_AUTHED);
+                setCookie(COOKIE_REGISTERED, "true", COOKIE_DURATION_AUTHED);
+                setCookie(COOKIE_USERNAME, username, COOKIE_DURATION_AUTHED);
+                
+                // Очищаем форму
+                const registeredUsername = username;
+                setUsername("");
+                setPassword("");
+                setEmail("");
+                setError("");
+                
+                // Вызываем callback вместо перезагрузки страницы
+                if (onLoginSuccess) {
+                    console.log('Вызываем onLoginSuccess с username:', registeredUsername);
+                    onLoginSuccess(registeredUsername);
+                } else {
+                    console.log('onLoginSuccess не передан, перезагружаем страницу');
+                    window.location.href = "/";
+                }
+            }
         } catch (err) {
-            setError("Network error");
+            setError("Ошибка сети");
         } finally {
             setLoading(false);
         }
@@ -106,9 +178,9 @@ const EnterForm = () => {
 
     return (
         <div className="enter-wrapper">
-            {error && <div className="error-message">{error}</div>}
             {openRegForm ? (
-                <form onSubmit={handleLogin}>
+                <form onSubmit={handleLogin} className="enter-form">
+                    {error && <div className="error-message">{error}</div>}
                     <p className="enter">Вход</p>
                     <input
                         className="input"
@@ -147,7 +219,8 @@ const EnterForm = () => {
                     </div>
                 </form>
             ) : (
-                <form onSubmit={handleRegister}>
+                <form onSubmit={handleRegister} className="enter-form">
+                    {error && <div className="error-message">{error}</div>}
                     <p className="enter">Регистрация</p>
                     <input
                         className="input"

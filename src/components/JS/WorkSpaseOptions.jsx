@@ -55,7 +55,13 @@ const WorkSpaseOptions = ({
         {isRegistered && (
           <li 
             className="work-spase-options-li"
-            onClick={onDeleteAccount}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (onDeleteAccount) {
+                onDeleteAccount();
+              }
+            }}
             style={{ cursor: 'pointer', color: '#ff4444' }}
           >
             Удалить аккаунт

@@ -29,6 +29,28 @@ const deleteCookie = (name) => {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 };
 
+const truncateFileName = (fileName, maxLength = 40) => {
+  if (fileName.length <= maxLength) {
+    return fileName;
+  }
+
+  const lastDotIndex = fileName.lastIndexOf('.');
+  if (lastDotIndex === -1 || lastDotIndex === 0) {
+    // Нет расширения или точка в начале
+    return fileName.substring(0, maxLength - 3) + '...';
+  }
+
+  const extension = fileName.substring(lastDotIndex);
+  const nameWithoutExt = fileName.substring(0, lastDotIndex);
+  const availableLength = maxLength - 3 - extension.length;
+
+  if (availableLength <= 0) {
+    return '...' + extension;
+  }
+
+  return nameWithoutExt.substring(0, availableLength) + '...' + extension;
+};
+
 const ChatInput = ({
   onToggleAddFilesToStorage,
   onToggleUseWebSearch,
@@ -197,7 +219,7 @@ const ChatInput = ({
           <button onClick={handleSubmit} className="send-btn" disabled={loader || (!text.trim() && selectedFiles.length === 0)}>↑</button>
           {selectedFiles.map((file, index) => (
             <div key={index} className="file-preview-item" onClick={() => deleteFile(index)}>
-              {file.name}
+              {truncateFileName(file.name)}
             </div>
           ))}
           {openOptions && (

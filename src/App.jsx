@@ -4,17 +4,48 @@ import Heads from './components/JS/Heads.jsx';
 import EnterForm from './components/JS/EnterForm.jsx';
 import Notification from './components/JS/Notification.jsx';
 
+const COOKIE_USERNAME = "username";
+const COOKIE_REGISTERED = "is_registered";
+
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
+
 function App() {
-  const [isEnterWindowOpen, setIsEnterWindowOpen] = useState(true);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notificationText, setNotificationText] = useState('');
+  const [username, setUsername] = useState(null);
+  const [isEnterWindowOpen, setIsEnterWindowOpen] = useState(true);
 
   const [addFilesToStorage, setAddFilesToStorage] = useState(false);
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [useMultiAgentMode, setMultiAgentMode] = useState(false);
 
+  useEffect(() => {
+    const storedUsername = getCookie(COOKIE_USERNAME);
+    const isRegistered = getCookie(COOKIE_REGISTERED) === "true";
+    if (storedUsername && isRegistered) {
+      setUsername(storedUsername);
+    }
+  }, []);
+
   const toggleEnterWindow = () => {
     setIsEnterWindowOpen(prev => !prev);
+  };
+
+  const handleLoginSuccess = (userUsername) => {
+    console.log('Успешный вход, username:', userUsername);
+    setUsername(userUsername);
+    setIsEnterWindowOpen(true);
+  };
+
+  const handleUsernameClick = () => {
+    if (!isEnterWindowOpen) {
+      setIsEnterWindowOpen(true);
+    }
   };
 
   const showNotification = useCallback((text) => {
@@ -44,7 +75,12 @@ function App() {
 
   return (
     <>
-      <Heads openEnterWindow={toggleEnterWindow} />
+      <Heads 
+        openEnterWindow={toggleEnterWindow} 
+        username={username}
+        onUsernameClick={handleUsernameClick}
+        isEnterWindowOpen={isEnterWindowOpen}
+      />
       {isEnterWindowOpen ? (
         <ChatInput
           onToggleAddFilesToStorage={toggleAddFilesToStorage}
@@ -54,7 +90,7 @@ function App() {
           useWebSearch={useWebSearch}
           useMultiAgentMode={useMultiAgentMode}
         />
-      ) : <EnterForm />}
+      ) : <EnterForm onLoginSuccess={handleLoginSuccess} />}
       {isNotificationOpen && <Notification text={notificationText} />}
     </>
   );
