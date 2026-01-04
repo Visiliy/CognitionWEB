@@ -3,7 +3,6 @@
     padding: 10px;
     border-radius: 20px;
     height: calc(100vh - 120px);
-    user-select: none;
     margin-left: 10px;
     max-width: 50%;
     overflow-y: auto;

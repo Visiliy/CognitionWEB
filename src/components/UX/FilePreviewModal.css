@@ -1,0 +1,82 @@
+.file-preview-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: contain;
+}
+  
+.file-preview-modal {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    width: 90%;
+    max-width: 900px;
+    height: 85vh;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+}
+
+.file-preview-header {
+    padding: 14px 20px;
+    background-color: #2d2d2d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #444;
+}
+
+.file-preview-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-preview-close {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-preview-body {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #1a1a1a;
+    white-space: pre-wrap;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.file-preview-body::-webkit-scrollbar {
+    width: 10px;
+}
+
+.file-preview-body::-webkit-scrollbar-track {
+    background-color: #1a1a1a;
+}
+
+.file-preview-body::-webkit-scrollbar-thumb {
+    background-color: #444;
+    border-radius: 5px;
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../UX/EnterForm.css";
 
 const COOKIE_NAME = "user_session_id";
@@ -10,6 +10,11 @@ const COOKIE_DURATION_AUTHED = 30 * 24 * 60 * 60;
 
 const setCookie = (name, value, maxAge) => {
   document.cookie = `${name}=${value}; max-age=${maxAge}; path=/; SameSite=Lax`;
+  if (name === COOKIE_NAME) {
+    const expirationTime = Date.now() + (maxAge * 1000);
+    localStorage.setItem('cookie_session_id', value);
+    localStorage.setItem('cookie_expiration_time', expirationTime.toString());
+  }
 };
 
 const getCookie = (name) => {
@@ -21,6 +26,59 @@ const getCookie = (name) => {
 
 const deleteCookie = (name) => {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+  if (name === COOKIE_NAME) {
+    localStorage.removeItem('cookie_session_id');
+    localStorage.removeItem('cookie_expiration_time');
+  }
+};
+
+const handleExpiredCookie = async (sessionId) => {
+  if (!sessionId) return;
+  
+  try {
+    const formData = new FormData();
+    formData.append("session_id", sessionId);
+    
+    const response = await fetch('http://127.0.0.1:5070/main_router/delete_session', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (response.ok) {
+      console.log('Сессия удалена с сервера после истечения куки');
+    } else {
+      console.warn('Не удалось удалить сессию с сервера:', response.status);
+    }
+  } catch (error) {
+    console.error('Ошибка при удалении сессии с сервера:', error);
+  } finally {
+    localStorage.removeItem('cookie_session_id');
+    localStorage.removeItem('cookie_expiration_time');
+  }
+};
+
+const checkCookieExpiration = () => {
+  const storedSessionId = localStorage.getItem('cookie_session_id');
+  const expirationTime = localStorage.getItem('cookie_expiration_time');
+  
+  if (storedSessionId && expirationTime) {
+    const currentTime = Date.now();
+    const expiration = parseInt(expirationTime, 10);
+    
+    if (currentTime >= expiration) {
+      const cookieExists = getCookie(COOKIE_NAME);
+      
+      if (!cookieExists) {
+        handleExpiredCookie(storedSessionId);
+      } else {
+        const cookieValue = getCookie(COOKIE_NAME);
+        if (cookieValue === storedSessionId) {
+          const newExpirationTime = Date.now() + (COOKIE_DURATION_AUTHED * 1000);
+          localStorage.setItem('cookie_expiration_time', newExpirationTime.toString());
+        }
+      }
+    }
+  }
 };
 
 const clearAllAuthCookies = () => {
@@ -44,6 +102,10 @@ const EnterForm = ({ onLoginSuccess }) => {
     const [email, setEmail] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        checkCookieExpiration();
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -84,12 +146,10 @@ const EnterForm = ({ onLoginSuccess }) => {
                 setCookie(COOKIE_REGISTERED, "true", COOKIE_DURATION_AUTHED);
                 setCookie(COOKIE_USERNAME, data.user.username, COOKIE_DURATION_AUTHED);
                 
-                // Очищаем форму
                 setUsername("");
                 setPassword("");
                 setError("");
                 
-                // Вызываем callback вместо перезагрузки страницы
                 if (onLoginSuccess) {
                     console.log('Вызываем onLoginSuccess с username:', data.user.username);
                     onLoginSuccess(data.user.username);
@@ -153,14 +213,12 @@ const EnterForm = ({ onLoginSuccess }) => {
                 setCookie(COOKIE_REGISTERED, "true", COOKIE_DURATION_AUTHED);
                 setCookie(COOKIE_USERNAME, username, COOKIE_DURATION_AUTHED);
                 
-                // Очищаем форму
                 const registeredUsername = username;
                 setUsername("");
                 setPassword("");
                 setEmail("");
                 setError("");
                 
-                // Вызываем callback вместо перезагрузки страницы
                 if (onLoginSuccess) {
                     console.log('Вызываем onLoginSuccess с username:', registeredUsername);
                     onLoginSuccess(registeredUsername);

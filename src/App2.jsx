@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "./App2.css"
+import "./App2.css";
 import FilesSpace from "./components/JS/FilesSpace";
 import Heads from "./components/JS/Heads";
 import WorkSpaseChat from "./components/JS/WorkSpaseChat";
@@ -32,7 +32,6 @@ const App2 = () => {
     };
 
     const handleLoginSuccess = (userUsername) => {
-        console.log('Успешный вход, username:', userUsername);
         setUsername(userUsername);
         setIsEnterWindowOpen(true);
     };
@@ -61,6 +60,6 @@ const App2 = () => {
             )}
         </>
     );
-}
+};
 
 export default App2;

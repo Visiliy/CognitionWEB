@@ -22,10 +22,77 @@ const getCookie = (name) => {
 
 const setCookie = (name, value, maxAge) => {
   document.cookie = `${name}=${value}; max-age=${maxAge}; path=/; SameSite=Lax`;
+  // Сохраняем информацию о куке в localStorage для отслеживания истечения
+  if (name === COOKIE_NAME) {
+    const expirationTime = Date.now() + (maxAge * 1000);
+    localStorage.setItem('cookie_session_id', value);
+    localStorage.setItem('cookie_expiration_time', expirationTime.toString());
+  }
 };
 
 const deleteCookie = (name) => {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+  if (name === COOKIE_NAME) {
+    localStorage.removeItem('cookie_session_id');
+    localStorage.removeItem('cookie_expiration_time');
+  }
+};
+
+// Функция для отправки запроса на удаление сессии при истечении куки
+const handleExpiredCookie = async (sessionId) => {
+  if (!sessionId) return;
+  
+  try {
+    const formData = new FormData();
+    formData.append("session_id", sessionId);
+    
+    const response = await fetch('http://127.0.0.1:5070/main_router/delete_session', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (response.ok) {
+      console.log('Сессия удалена с сервера после истечения куки');
+    } else {
+      console.warn('Не удалось удалить сессию с сервера:', response.status);
+    }
+  } catch (error) {
+    console.error('Ошибка при удалении сессии с сервера:', error);
+  } finally {
+    // Очищаем localStorage
+    localStorage.removeItem('cookie_session_id');
+    localStorage.removeItem('cookie_expiration_time');
+  }
+};
+
+// Функция для проверки истечения куки
+const checkCookieExpiration = () => {
+  const storedSessionId = localStorage.getItem('cookie_session_id');
+  const expirationTime = localStorage.getItem('cookie_expiration_time');
+  
+  if (storedSessionId && expirationTime) {
+    const currentTime = Date.now();
+    const expiration = parseInt(expirationTime, 10);
+    
+    // Проверяем, истекла ли кука
+    if (currentTime >= expiration) {
+      // Кука истекла, проверяем, существует ли она еще
+      const cookieExists = getCookie(COOKIE_NAME);
+      
+      if (!cookieExists) {
+        // Кука удалена браузером, отправляем запрос на сервер
+        handleExpiredCookie(storedSessionId);
+      } else {
+        // Кука еще существует, но время истекло - обновляем localStorage
+        const cookieValue = getCookie(COOKIE_NAME);
+        if (cookieValue === storedSessionId) {
+          // Обновляем время истечения, если кука была обновлена
+          const newExpirationTime = Date.now() + (COOKIE_DURATION_AUTHED * 1000);
+          localStorage.setItem('cookie_expiration_time', newExpirationTime.toString());
+        }
+      }
+    }
+  }
 };
 
 const clearAllCookies = () => {
@@ -55,17 +122,34 @@ const WorkSpaseChat = () => {
   const textareaRef = useRef(null);
 
   useEffect(() => {
+    // Проверяем истечение куки перед загрузкой
+    checkCookieExpiration();
+    
     const storedId = getCookie(COOKIE_NAME);
     if (storedId) {
       setSessionId(storedId);
       setIsRegistered(true);
       setCookie(COOKIE_NAME, storedId, COOKIE_DURATION_AUTHED);
     } else {
+      // Проверяем, не истекла ли кука (есть в localStorage, но нет в cookies)
+      const localStorageSessionId = localStorage.getItem('cookie_session_id');
+      if (localStorageSessionId) {
+        // Кука истекла, отправляем запрос на удаление сессии
+        handleExpiredCookie(localStorageSessionId);
+      }
+      
       const newId = generateHashKey();
       setSessionId(newId);
       setIsRegistered(false);
       setCookie(COOKIE_NAME, newId, COOKIE_DURATION_ANON);
     }
+    
+    // Устанавливаем периодическую проверку истечения куки (каждые 5 минут)
+    const expirationCheckInterval = setInterval(() => {
+      checkCookieExpiration();
+    }, 5 * 60 * 1000);
+    
+    return () => clearInterval(expirationCheckInterval);
   }, []);
 
   const fetchFiles = async (storageType) => {

@@ -28,6 +28,7 @@ const WorkSpaseOptions = ({
               multiple
               style={{ display: 'none' }}
               onChange={handleFileUpload}
+              accept=".txt,.pdf,.doc,.docx"
             />
           </label>
         </li>

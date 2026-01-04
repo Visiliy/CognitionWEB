@@ -43,7 +43,7 @@ const Options = ({
         style={{ display: "none" }}
         onChange={handleFileChange}
         multiple
-        accept=".txt,.md,.csv,.json,.xml,.html,.css,.js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.h,.sh,.bat,.log,.doc"
+        accept=".txt,.pdf,.doc,.docx"
       />
       {openAddFiles && (
         <div className="add-file">
