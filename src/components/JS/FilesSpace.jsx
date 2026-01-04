@@ -152,7 +152,7 @@ const FilesSpace = () => {
       <div className="files-header">
         <h1>Мои файлы</h1>
         <button onClick={refreshFiles} className="refresh-btn">Обновить</button>
-        <button onClick={deleteSession} className="delete-session-btn">Удалить сессию</button>
+        <button onClick={deleteSession} className="delete-session-btn">Удалить аккаунт</button>
       </div>
 
       {!hasFiles ? (

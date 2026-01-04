@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./App2.css";
 import FilesSpace from "./components/JS/FilesSpace";
 import Heads from "./components/JS/Heads";
@@ -18,6 +19,7 @@ const getCookie = (name) => {
 const App2 = () => {
     const [username, setUsername] = useState(null);
     const [isEnterWindowOpen, setIsEnterWindowOpen] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const storedUsername = getCookie(COOKIE_USERNAME);
@@ -42,6 +44,29 @@ const App2 = () => {
         }
     };
 
+    const deleteAllCookies = () => {
+        // Получаем все куки
+        const cookies = document.cookie.split(";");
+        
+        // Удаляем каждую куку, устанавливая её с прошедшей датой
+        cookies.forEach(cookie => {
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+            if (name) {
+                // Удаляем куку, устанавливая её с прошедшей датой и пустым значением
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+                // Также пытаемся удалить с другими возможными путями
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/working_area;`;
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;domain=${window.location.hostname};`;
+            }
+        });
+    };
+
+    const handleLogout = () => {
+        deleteAllCookies();
+        navigate("/");
+    };
+
     return (
         <>
             <Heads 
@@ -50,6 +75,7 @@ const App2 = () => {
                 onUsernameClick={handleUsernameClick}
                 isEnterWindowOpen={isEnterWindowOpen}
             />
+            <p className="enter-text" onClick={handleLogout}>Выйти из аккаунта</p>
             {isEnterWindowOpen ? (
                 <div className="space">
                     <FilesSpace />

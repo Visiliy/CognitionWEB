@@ -5,6 +5,20 @@
     box-sizing: border-box;
 }
 
+.enter-text {
+    position: absolute;
+    color: black;
+    background-color: red;
+    padding: 4px;
+    right: 20px;
+    border-radius: 10px;
+    width: fit-content;
+    user-select: none;
+    cursor: pointer;
+    margin-top: 0;
+    
+}
+
 html, body {
     margin: 0;
     padding: 0;

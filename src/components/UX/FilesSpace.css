@@ -49,6 +49,7 @@
   
   .delete-session-btn {
     margin-left: 7px;
+    background-color: red;
   }
   
   .files-section::-webkit-scrollbar {
